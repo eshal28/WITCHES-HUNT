@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cozy Chibi Cottage - Mixing Pot Edition</title>
+    <!-- Include p5.js from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap');
+
+        body {
+            background-color: #161022;
+            color: #f7f3e9;
+            font-family: 'Quicksand', sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 15px;
+        }
+
+        h1 {
+            color: #ff9e3b;
+            font-size: 22px;
+            text-shadow: 2px 2px #422134;
+            margin-bottom: 5px;
+        }
+
+        button {
+            background-color: #6b3e58;
+            color: #ffdebd;
+            border: 2px solid #ff9e3b;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 700;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 13px;
+            margin: 6px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background-color: #ff9e3b;
+            color: #2c1f3d;
+            transform: translateY(-2px);
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .active {
+            display: block;
+        }
+
+        /* Selection Grids */
+        .grid-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background: #2c1f3d;
+            border: 3px solid #8e44ad;
+            border-radius: 12px;
+            padding: 15px;
+            width: 140px;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.2s;
+        }
+
+        .card:hover {
+            border-color: #ff9e3b;
+            transform: scale(1.05);
+            background: #36274a;
+        }
+
+        /* Layout & UI */
+        #game-layout {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            align-items: flex-start;
+            margin-top: 10px;
+        }
+
+        #ui-sidebar {
+            width: 180px;
+            background: #241833;
+            border: 3px solid #8e44ad;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: left;
+            font-size: 12px;
+            box-sizing: border-box;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        #canvas-wrapper {
+            border: 6px solid #ff9e3b;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(255, 158, 59, 0.2);
+        }
+
+        /* Mixing Pot Station Screen */
+        #mixing-station-screen {
+            background: #1e1230;
+            border: 6px solid #ff9e3b;
+            border-radius: 16px;
+            width: 650px;
+            margin: 20px auto;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-sizing: border-box;
+        }
+
+        .mix-item-card {
+            display: inline-block;
+            background: #2c1f3d;
+            border: 3px solid #8e44ad;
+            border-radius: 10px;
+            padding: 10px 15px;
+            margin: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.2s;
+        }
+
+        .mix-item-card:hover {
+            border-color: #ff9e3b;
+            transform: scale(1.05);
+            background: #36274a;
+        }
+
+        .mix-item-added {
+            opacity: 0.3;
+            text-decoration: line-through;
+            pointer-events: none;
+            border-color: #55ff99;
+        }
+
+        /* Guide Modal */
+        #guide-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #241833;
+            border: 4px solid #ff9e3b;
+            border-radius: 12px;
+            padding: 25px;
+            width: 440px;
+            z-index: 100;
+            font-size: 12px;
+            line-height: 1.8;
+            box-shadow: 0 0 40px #000;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TITLE SCREEN -->
+    <div id="title-screen" class="screen active">
+        <h1>COZY CHIBI COTTAGE</h1>
+        <p style="font-size: 12px; color: #ffd27c; margin: 10px 0 20px 0;">Interactive Mixing Pot Edition</p>
+        <button onclick="showScreen('map-screen')">START ADVENTURE</button>
+        <button onclick="toggleGuide(true)">HOW TO PLAY</button>
+    </div>
+
+    <!-- MAP SELECTION SCREEN -->
+    <div id="map-screen" class="screen">
+        <h1 style="font-size: 18px;">CHOOSE UNIQUE COTTAGE ROOM</h1>
+        <div class="grid-container">
+            <div class="card" onclick="selectMap(0, 'Library Study', '#4a3b32')">
+                <div style="font-size:30px;">📚</div>
+                <p style="font-size:12px; font-weight:700; margin:8px 0;">Library Study</p>
+                <span style="font-size:10px; color:#d4ac0d;">Desks & Bookshelves</span>
+            </div>
+            <div class="card" onclick="selectMap(1, 'Potion Kitchen', '#59323a')">
+                <div style="font-size:30px;">🍲</div>
+                <p style="font-size:12px; font-weight:700; margin:8px 0;">Potion Kitchen</p>
+                <span style="font-size:10px; color:#f1948a;">Counters & Fireplace</span>
+            </div>
+            <div class="card" onclick="selectMap(2, 'Moonlit Parlor', '#2e304f')">
+                <div style="font-size:30px;">🕯️</div>
+                <p style="font-size:12px; font-weight:700; margin:8px 0;">Moonlit Parlor</p>
+                <span style="font-size:10px; color:#85c1e9;">Bay Windows & Couches</span>
+            </div>
+            <div class="card" onclick="selectMap(3, 'Attic Storeroom', '#324a35')">
+                <div style="font-size:30px;">📦</div>
+                <p style="font-size:12px; font-weight:700; margin:8px 0;">Attic Storeroom</p>
+                <span style="font-size:10px; color:#a3e4d7;">Forest Green & Crates</span>
+            </div>
+        </div>
+        <br>
+        <button onclick="showScreen('title-screen')">BACK</button>
+    </div>
+
+    <!-- CHARACTER SELECTION SCREEN -->
+    <div id="char-screen" class="screen">
+        <h1 style="font-size: 18px;">CHOOSE YOUR CHIBI HERO</h1>
+        <div class="grid-container">
+            <div class="card" onclick="selectCharacter('Finn', 'Magician', '#3498db')">
+                <div style="font-size:32px;">🧙‍♂️</div>
+                <p style="font-size:12px; font-weight:700; margin:8px 0;">Finn</p>
+                <span style="font-size:10px; color:#85c1e9;">Magician (Boy)</span>
+            </div>
+            <div class="card" onclick="selectCharacter('Orion', 'Sorcerer', '#9b59b6')">
+                <div style="font-size:32px;">🔮</div>
+                <p style="font-size:12px; font-weight:700; margin:8px 0;">Orion</p>
+                <span style="font-size:10px; color:#bb8fce;">Sorcerer (Boy)</span>
+            </div>
+            <div class="card" onclick="selectCharacter('Lyra', 'Magician', '#e74c3c')">
+                <div style="font-size:32px;">🧙‍♀️</div>
+                <p style="font-size:12px; font-weight:700; margin:8px 0;">Lyra</p>
+                <span style="font-size:10px; color:#f1948a;">Magician (Girl)</span>
+            </div>
+            <div class="card" onclick="selectCharacter('Vesper', 'Witch', '#2ecc71')">
+                <div style="font-size:32px;">🧹</div>
+                <p style="font-size:12px; font-weight:700; margin:8px 0;">Vesper</p>
+                <span style="font-size:10px; color:#a3e4d7;">Witch (Girl)</span>
+            </div>
+        </div>
+        <br>
+        <button onclick="showScreen('map-screen')">BACK</button>
+    </div>
+
+    <!-- GAMEPLAY SCREEN -->
+    <div id="game-screen" class="screen">
+        <div id="game-layout">
+            <div id="ui-sidebar">
+                <p style="color:#ff9e3b; font-weight:700; margin-top:0;">SPELLCASTER:</p>
+                <p id="ui-hero" style="margin-bottom:12px;">-</p>
+                <p style="color:#ff9e3b; font-weight:700;">RECIPE LIST:</p>
+                <div id="recipe-checklist" style="line-height: 1.6;"></div>
+                <hr style="border-color:#573b6b; margin:12px 0;">
+                <button style="width:100%; margin:0 0 6px 0; font-size:10px; padding:6px;" onclick="toggleGuide(true)">GUIDE</button>
+                <button style="width:100%; margin:0; font-size:10px; padding:6px; background-color:#8e44ad;" onclick="restartGame()">RESTART</button>
+            </div>
+            <div id="canvas-wrapper"></div>
+        </div>
+        <p style="font-size: 11px; color: #ffd27c; margin-top: 10px;">Use <b>Arrow Keys</b> or <b>W, A, S, D</b> to explore. Gather your 3 ingredients, then head to the Cauldron!</p>
+    </div>
+
+    <!-- MIXING POT STATION SCREEN -->
+    <div id="mixing-station-screen" class="screen">
+        <h1 style="color: #ff9e3b; font-size: 20px;">THE MIXING POT STATION</h1>
+        <p style="font-size: 12px; color: #ffd27c; margin-bottom: 10px;">Click your collected ingredients to drop them into the bubbling mixing pot!</p>
+        
+        <!-- Big Visual Mixing Pot -->
+        <div style="font-size: 70px; margin: 10px; animation: bounce 1s infinite alternate;" id="mixing-pot-display">🍲✨</div>
+        <div id="pot-status-text" style="font-size: 12px; color: #a3e4d7; margin-bottom: 15px;">Ingredients in pot: 0 / 3</div>
+
+        <div id="mix-ingredients-container" style="margin: 10px 0;"></div>
+        
+        <br>
+        <button id="stir-pot-btn" style="background-color: #27ae60; font-size: 14px; padding: 12px 24px; display: none;" onclick="stirAndNamePotion()">STIR & NAME POTION!</button>
+    </div>
+
+    <!-- WIN SCREEN -->
+    <div id="win-screen" class="screen">
+        <h1 style="color: #55ff99;">POTION SUCCESSFULLY BREWED!</h1>
+        <p id="win-text" style="font-size: 13px; margin: 20px; line-height: 1.8; color:#fdfefe;"></p>
+        <div style="font-size: 45px; margin: 15px;">🔥🍲✨🎃✨</div>
+        <button onclick="restartGame()">PLAY AGAIN</button>
+    </div>
+
+    <!-- GUIDE MODAL -->
+    <div id="guide-modal">
+        <h3 style="color: #ff9e3b; margin-top:0; font-size:15px;">COTTAGE GUIDE</h3>
+        <p>🏠 <b>Unique Rooms:</b> Each room has custom furniture (desks, counters, couches, crates).</p>
+        <p>📋 <b>The Recipe List:</b> Check your sidebar for 3 randomized recipe items you need to find.</p>
+        <p>🚫 <b>Watch Out for Decoys:</b> The rooms contain general clutter (books, candles, skulls). Collect <b>only</b> your specified recipe items!</p>
+        <p>🍲 <b>Mixing Pot:</b> Drop your items into the pot to generate a hilarious, realistic custom recipe name!</p>
+        <br>
+        <button onclick="toggleGuide(false)">GOT IT</button>
+    </div>
+
+    <script>
+        let selectedMap = { id: 0, name: 'Library Study', floorColor: '#4a3b32' };
+        let selectedHero = { name: 'Finn', role: 'Magician', color: '#3498db' };
+        let gameCanvas;
+        let playerX = 150, playerY = 180;
+        let playerSpeed = 3.5;
+        
+        let mapWidth = 1100;
+        let mapHeight = 750;
+
+        let recipeItems = [];
+        let decoyItems = [];
+        let collectedCount = 0;
+        let gameStarted = false;
+        let itemsInPotCount = 0;
+
+        const allIngredients = [
+            { name: "Moon Petal", icon: "🌸" },
+            { name: "Star Dust", icon: "✨" },
+            { name: "Cinnamon", icon: "🪵" },
+            { name: "Toadstool", icon: "🍄" },
+            { name: "Crystal", icon: "💎" },
+            { name: "Phoenix Feather", icon: "🪶" },
+            { name: "Ghost Root", icon: "🌿" }
+        ];
+
+        const decoyPool = [
+            { icon: "📚", name: "Old Book" },
+            { icon: "🕯️", name: "Tallow Candle" },
+            { icon: "💀", name: "Dusty Skull" },
+            { icon: "🎃", name: "Small Pumpkin" },
+            { icon: "🧹", name: "Sweep Broom" },
+            { icon: "📜", name: "Torn Scroll" }
+        ];
+
+        // Funny realistic recipe name pools
+        const funnyAdjectives = [
+            "Over-Caffeinated", "Accidental Toe-Curling", "Mid-Night Panic", 
+            "Slightly Questionable", "Wobbly Knees", "Sparkly Sneeze-Inducing", 
+            "Grandma's Secret", "Chaotic Sugar-Rush", "Dubious Goblin", "Mystically Clumsy"
+        ];
+        const funnyNouns = [
+            "Hiccup Elixir", "Gooey Gumbo", "Bubble Brew", 
+            "Snicker-Doodle Potion", "Awkward Floating Tonic", "Socks-Knocking Draught", 
+            "Midnight Disaster", "Tickle Juice", "Giggle Soup", "Awakening Goo"
+        ];
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            if (screenId === 'game-screen') {
+                startGameSession();
+            } else if (screenId === 'mixing-station-screen') {
+                setupMixingStation();
+            } else {
+                gameStarted = false;
+            }
+        }
+
+        function toggleGuide(show) {
+            document.getElementById('guide-modal').style.display = show ? 'block' : 'none';
+        }
+
+        function selectMap(id, name, floorColor) {
+            selectedMap = { id, name, floorColor };
+            showScreen('char-screen');
+        }
+
+        function selectCharacter(name, role, color) {
+            selectedHero = { name, role, color };
+            document.getElementById('ui-hero').innerHTML = `<b style="color:${color}">${name}</b> (${role})`;
+            showScreen('game-screen');
+        }
+
+        function startGameSession() {
+            playerX = 150;
+            playerY = 180;
+            collectedCount = 0;
+            itemsInPotCount = 0;
+
+            let shuffledIng = [...allIngredients].sort(() => 0.5 - Math.random());
+            recipeItems = shuffledIng.slice(0, 3).map(ing => ({
+                name: ing.name,
+                icon: ing.icon,
+                x: Math.floor(Math.random() * 850) + 120,
+                y: Math.floor(Math.random() * 520) + 150,
+                collected: false
+            }));
+
+            decoyItems = [];
+            for (let i = 0; i < 7; i++) {
+                let dec = decoyPool[Math.floor(Math.random() * decoyPool.length)];
+                decoyItems.push({
+                    name: dec.name,
+                    icon: dec.icon,
+                    x: Math.floor(Math.random() * 900) + 100,
+                    y: Math.floor(Math.random() * 550) + 150
+                });
+            }
+
+            updateChecklistUI();
+            gameStarted = true;
+        }
+
+        function updateChecklistUI() {
+            let html = "";
+            recipeItems.forEach(item => {
+                if (item.collected) {
+                    html += `<div style="color:#55ff99; text-decoration:line-through; margin-bottom:5px;">✅ ${item.icon} ${item.name}</div>`;
+                } else {
+                    html += `<div style="color:#ffd27c; margin-bottom:5px;">⬜ ${item.icon} ${item.name}</div>`;
+                }
+            });
+            document.getElementById('recipe-checklist').innerHTML = html;
+        }
+
+        function restartGame() {
+            showScreen('map-screen');
+        }
+
+        function setup() {
+            gameCanvas = createCanvas(680, 480);
+            gameCanvas.parent('canvas-wrapper');
+        }
+
+        function draw() {
+            if (!gameStarted) return;
+
+            let cauldronX = mapWidth - 130;
+            let cauldronY = mapHeight - 110;
+
+            // --- CAMERA FOLLOW ---
+            let targetCamX = constrain(playerX - width / 2, 0, mapWidth - width);
+            let targetCamY = constrain(playerY - height / 2, 0, mapHeight - height);
+
+            // Textured Floor
+            background(color(selectedMap.floorColor));
+
+            // Wood plank texture lines
+            stroke(0, 0, 0, 50);
+            strokeWeight(2);
+            for (let x = 0; x < mapWidth; x += 60) {
+                line(x, 0, x, mapHeight);
+            }
+            for (let y = 0; y < mapHeight; y += 60) {
+                line(0, y, mapWidth, y);
+            }
+
+            // --- UNIQUE MAP BACKGROUNDS & FURNITURE ---
+            noStroke();
+            if (selectedMap.id === 0) {
+                fill(40, 28, 24);
+                rect(0, 0, mapWidth, 140);
+                fill(70, 48, 38);
+                rect(60, 20, 320, 120);
+                fill(190, 70, 70); rect(80, 35, 22, 90);
+                fill(70, 120, 190); rect(110, 35, 25, 90);
+                fill(70, 180, 110); rect(145, 35, 20, 90);
+                fill(210, 160, 70); rect(180, 35, 25, 90);
+                fill(90, 62, 48);
+                rect(450, 280, 200, 90, 8);
+                fill(60, 40, 30);
+                rect(480, 310, 140, 30, 4);
+            } else if (selectedMap.id === 1) {
+                fill(50, 25, 32);
+                rect(0, 0, mapWidth, 140);
+                fill(45, 40, 42);
+                rect(820, 15, 220, 125);
+                fill(25, 22, 24);
+                rect(860, 45, 140, 95);
+                fill(255, 130, 0, 210 + sin(frameCount * 0.2) * 45);
+                ellipse(930, 95, 65, 80);
+                fill(90, 60, 50);
+                rect(300, 320, 260, 90, 8);
+                fill(120, 80, 65);
+                rect(320, 335, 220, 20, 4);
+            } else if (selectedMap.id === 2) {
+                fill(22, 24, 42);
+                rect(0, 0, mapWidth, 140);
+                fill(32, 35, 60);
+                rect(420, 15, 260, 125, 10);
+                fill(241, 196, 15, 180);
+                rect(440, 30, 100, 95);
+                rect(560, 30, 100, 95);
+                fill(120, 40, 70);
+                rect(200, 300, 180, 90, 12);
+                fill(150, 55, 90);
+                rect(220, 315, 140, 60, 10);
+            } else {
+                fill(28, 42, 32);
+                rect(0, 0, mapWidth, 140);
+                fill(100, 75, 45);
+                rect(120, 45, 90, 85, 4);
+                fill(80, 60, 35);
+                rect(230, 65, 80, 65, 4);
+                fill(110, 80, 50);
+                rect(750, 300, 140, 100, 6);
+                fill(70, 50, 30);
+                rect(770, 330, 100, 40, 4);
+            }
+
+            // Draw Cauldron
+            drawChibiCauldron(cauldronX, cauldronY);
+
+            // --- PLAYER CONTROLS ---
+            if (keyIsDown(LEFT_ARROW) || keyIsDown(65)) playerX -= playerSpeed;
+            if (keyIsDown(RIGHT_ARROW) || keyIsDown(68)) playerX += playerSpeed;
+            if (keyIsDown(UP_ARROW) || keyIsDown(87)) playerY -= playerSpeed;
+            if (keyIsDown(DOWN_ARROW) || keyIsDown(83)) playerY += playerSpeed;
+
+            playerX = constrain(playerX, 30, mapWidth - 30);
+            playerY = constrain(playerY, 150, mapHeight - 30);
+
+            // --- RENDER WITH CAMERA TRANSLATION ---
+            push();
+            translate(-targetCamX, -targetCamY);
+
+            // Draw Decoy Items
+            textSize(22);
+            textAlign(CENTER, CENTER);
+            decoyItems.forEach(dec => {
+                let floatY = dec.y + sin(frameCount * 0.08 + dec.x) * 3;
+                text(dec.icon, dec.x, floatY);
+            });
+
+            // Draw Recipe Items
+            recipeItems.forEach(ing => {
+                if (!ing.collected) {
+                    let floatY = ing.y + sin(frameCount * 0.12) * 5;
+                    fill(255, 215, 0, 70 + sin(frameCount * 0.2) * 40);
+                    noStroke();
+                    ellipse(ing.x, floatY, 32, 32);
+
+                    textSize(26);
+                    text(ing.icon, ing.x, floatY);
+
+                    // Collision detection
+                    let d = dist(playerX, playerY, ing.x, ing.y);
+                    if (d < 28) {
+                        ing.collected = true;
+                        collectedCount++;
+                        updateChecklistUI();
+                    }
+                }
+            });
+
+            // Draw Chibi Character
+            drawChibiCharacter(playerX, playerY, selectedHero);
+
+            pop(); // End camera translation
+
+            // --- CHECK WIN CONDITION AT CAULDRON ---
+            let cauldronDist = dist(playerX, playerY, cauldronX, cauldronY);
+            if (collectedCount >= recipeItems.length && cauldronDist < 45) {
+                gameStarted = false;
+                showScreen('mixing-station-screen');
+            }
+        }
+
+        // --- MIXING POT STATION LOGIC ---
+        function setupMixingStation() {
+            let container = document.getElementById('mix-ingredients-container');
+            container.innerHTML = "";
+            itemsInPotCount = 0;
+            document.getElementById('stir-pot-btn').style.display = 'none';
+            document.getElementById('pot-status-text').innerText = "Ingredients in pot: 0 / 3";
+            document.getElementById('mixing-pot-display').innerHTML = "🍲✨";
+
+            recipeItems.forEach((ing, index) => {
+                let card = document.createElement('div');
+                card.className = 'mix-item-card';
+                card.id = 'mix-item-' + index;
+                card.innerHTML = `${ing.icon} ${ing.name}`;
+                card.onclick = () => dropIntoMixingPot(index);
+                container.appendChild(card);
+            });
+        }
+
+        function dropIntoMixingPot(index) {
+            let card = document.getElementById('mix-item-' + index);
+            if (!card.classList.contains('mix-item-added')) {
+                card.classList.add('mix-item-added');
+                itemsInPotCount++;
+
+                document.getElementById('pot-status-text').innerText = `Ingredients in pot: ${itemsInPotCount} / 3`;
+                document.getElementById('mixing-pot-display').innerHTML = `🍲 ${recipeItems[index].icon}💥`;
+
+                if (itemsInPotCount >= recipeItems.length) {
+                    document.getElementById('mixing-pot-display').innerHTML = `🍲🌟🔥`;
+                    document.getElementById('stir-pot-btn').style.display = 'inline-block';
+                }
+            }
+        }
+
+        function stirAndNamePotion() {
+            let adj = funnyAdjectives[Math.floor(Math.random() * funnyAdjectives.length)];
+            let noun = funnyNouns[Math.floor(Math.random() * funnyNouns.length)];
+            let funnyRecipeName = `${adj} ${noun}`;
+
+            let ingredientNames = recipeItems.map(i => i.name).join(', ');
+            
+            document.getElementById('win-text').innerHTML = 
+                `${selectedHero.name} the ${selectedHero.role} successfully mixed (${ingredientNames}) inside the <b>${selectedMap.name}</b> mixing pot!<br><br>` +
+                `✨ Your Realistic Recipe Name: ✨<br>` +
+                `<b style="color:#ff9e3b; font-size:18px;">"${funnyRecipeName}"</b><br><br>` +
+                `...Happy Halloween!`;
+            showScreen('win-screen');
+        }
+
+        // --- ARTWORK FUNCTIONS ---
+        function drawChibiCharacter(x, y, hero) {
+            push();
+            translate(x, y);
+
+            // Shadow
+            fill(10, 5, 15, 130);
+            noStroke();
+            ellipse(0, 22, 26, 12);
+
+            // Body / Robe
+            fill(hero.color);
+            rect(-11, -4, 22, 25, 5);
+
+            // Collar
+            fill(255, 240, 220);
+            triangle(-9, -4, 9, -4, 0, 7);
+
+            // Head
+            fill(255, 222, 173);
+            ellipse(0, -16, 30, 26);
+
+            // Eyes
+            fill(25);
+            ellipse(-5, -17, 4, 6);
+            ellipse(5, -17, 4, 6);
+            fill(255);
+            ellipse(-6, -19, 1.5, 1.5);
+            ellipse(4, -19, 1.5, 1.5);
+
+            // Hat
+            fill(hero.color);
+            triangle(-16, -24, 16, -24, 4, -46);
+            fill(241, 196, 15);
+            ellipse(4, -36, 4, 4);
+
+            pop();
+        }
+
+        function drawChibiCauldron(x, y) {
+            push();
+            translate(x, y);
+            // Potion liquid animation
+            fill(46, 204, 113, 210 + sin(frameCount * 0.15) * 45);
+            noStroke();
+            ellipse(0, -16, 36, 16);
+
+            // Pot body
+            fill(45, 45, 55);
+            rect(-22, -10, 44, 34, 6);
+            fill(65, 65, 75);
+            rect(-26, -14, 52, 7, 3);
+            pop();
+        }
+    </script>
+</body>
+</html>
